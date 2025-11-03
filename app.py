@@ -179,7 +179,7 @@ CONSTRAINTS:
 - If the Tool mentioned is not present in the given tools set, then "Tool": "None" or find any alternative option from the given Tool set.
 - Output **must exactly follow this structure** strictly:
 
-"Tool": "<Tool>", "Module": "<Module>", "Task": "<Task>", "Time Frame": "<Time Frame>", "Quality Rating": "<Quality Rating>", "isAlternative": "<True/False>"
+"Tool": "<Tool>", "Module": "<Module>", "Task": "<Task>", "Time Frame": "<Time Frame>", "Quality Rating": "<Quality Rating>", "isAlternative": "<true/false>"
 
 for example, the response will come: "Tool": "ServiceNow", "Module": "Incident Management", "Task": "Report", "Time Frame": "2 hours", "Quality Rating": 85
 - Each field must be enclosed in **double quotes**.
@@ -227,4 +227,5 @@ for example, the response will come: "Tool": "ServiceNow", "Module": "Incident M
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Render sets PORT
     app.run(host='0.0.0.0', port=port)
+
 
