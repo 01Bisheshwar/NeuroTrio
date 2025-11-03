@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # 👈 import this
+from flask_cors import CORS # 👈 import this
 import requests
 import json
 import numpy as np
@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 API_KEY = "AIzaSyDRDiplWe_cy8WHDCNE6n3nEOdCV0DB4oE"
-MODEL_ID = "gemini-2.0-flash" 
+MODEL_ID = "gemini-2.5-pro"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_ID}:generateContent?key={API_KEY}"
 
 @app.route('/')
@@ -46,7 +46,7 @@ def recommend(filter_dict, top_n=10):
     numeric_cols = ["Time Frame", "Quality Rating"]
 
     filter_vec = []
-    weight_mask = []  # new mask to ignore fields
+    weight_mask = [] # new mask to ignore fields
 
     for col in categorical_cols:
         vec = np.zeros(len(category_mappings[col]["unique_vals"]))
@@ -59,7 +59,7 @@ def recommend(filter_dict, top_n=10):
             vec = np.array(category_mappings[col]["encoding"][filter_dict[col]])
             weight_mask.extend([1] * len(vec))
         else:
-            # mark ignored fields with 0 weights
+        # mark ignored fields with 0 weights
             weight_mask.extend([0] * len(vec))
         filter_vec.extend(vec)
 
@@ -76,7 +76,7 @@ def recommend(filter_dict, top_n=10):
     def weighted_distance(a, b, w):
         mask = w > 0
         if not np.any(mask):
-            return 0  # all ignored
+            return 0 # all ignored
         return np.sqrt(np.sum(((a[mask] - b[mask]) ** 2)))
 
     distances = [weighted_distance(filter_vec, row, weight_mask) for row in X]
@@ -155,11 +155,11 @@ Here is the relationship between them (Tool → Modules → Tasks):
 {mapping_str}
 
 Map the quality rating (if given as text) using this mapping:
-    "very high": 95
-    "high": 85
-    "medium": 65
-    "low": 50
-    "bad": 35
+"very high": 95
+"high": 85
+"medium": 65
+"low": 50
+"bad": 35
 
 User input: "{user_prompt}"
 
@@ -176,9 +176,10 @@ CONSTRAINTS:
 - Output must be a *comma-separated string* enclosed in double quotes for each field.
 - The output **must not contain braces, brackets, or JSON formatting of any kind.**
 - Use the {mapping_str} strictly as the Tools, Tasks and Modules are interdependent
+- If the Tool mentioned is not present in the given tools set, then "Tool": "None" or find any alternative option from the given Tool set.
 - Output **must exactly follow this structure** strictly:
 
-"Tool": "<Tool>", "Module": "<Module>", "Task": "<Task>", "Time Frame": "<Time Frame>", "Quality Rating": "<Quality Rating>"
+"Tool": "<Tool>", "Module": "<Module>", "Task": "<Task>", "Time Frame": "<Time Frame>", "Quality Rating": "<Quality Rating>", "isAlternative": "<True/False>"
 
 for example, the response will come: "Tool": "ServiceNow", "Module": "Incident Management", "Task": "Report", "Time Frame": "2 hours", "Quality Rating": 85
 - Each field must be enclosed in **double quotes**.
@@ -186,7 +187,6 @@ for example, the response will come: "Tool": "ServiceNow", "Module": "Incident M
 - The response **must contain nothing else** — no braces, no explanations, no notes, no newlines, no markdown.
 - If any part cannot be inferred, the corresponding value should be `"None"` for Tool, Module, Task, and Time Frame, and `"0"` for Quality Rating.
 - Do not request clarification or additional input under any circumstances.
-
 """
                         }
                     ]
@@ -204,8 +204,9 @@ for example, the response will come: "Tool": "ServiceNow", "Module": "Incident M
             parts = result["candidates"][0].get("content", {}).get("parts", [])
             if len(parts) > 0 and "text" in parts[0]:
                 gemini_output = parts[0]["text"]
-                if "INVALID_PROMPT" not in gemini_output:
-                    gemini_output = "{" + gemini_output + "}"
+
+        if "INVALID_PROMPT" not in gemini_output:
+            gemini_output = "{" + gemini_output + "}"
 
         if "INVALID_PROMPT" in gemini_output:
             return jsonify({"error": "Prompt is not relevant to resource utilization"}), 400
@@ -226,3 +227,4 @@ for example, the response will come: "Tool": "ServiceNow", "Module": "Incident M
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Render sets PORT
     app.run(host='0.0.0.0', port=port)
+
